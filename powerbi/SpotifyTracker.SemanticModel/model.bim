@@ -1,0 +1,500 @@
+{
+  "name": "SpotifyTracker",
+  "compatibilityLevel": 1600,
+  "model": {
+    "culture": "en-US",
+    "sourceQueryCulture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "discourageImplicitMeasures": true,
+    "expressions": [
+      {
+        "name": "DataFolder",
+        "kind": "m",
+        "expression": "\"C:/dev/spotify_tracker/data/processed\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Listening",
+        "columns": [
+          {
+            "name": "event_id",
+            "dataType": "string",
+            "sourceColumn": "event_id",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "ended_at_utc",
+            "dataType": "string",
+            "sourceColumn": "ended_at_utc",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "date",
+            "dataType": "dateTime",
+            "sourceColumn": "date",
+            "summarizeBy": "none",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "hour",
+            "dataType": "int64",
+            "sourceColumn": "hour",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "weekday_number",
+            "dataType": "int64",
+            "sourceColumn": "weekday_number",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "weekday",
+            "dataType": "string",
+            "sourceColumn": "weekday",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "year",
+            "dataType": "int64",
+            "sourceColumn": "year",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "month",
+            "dataType": "string",
+            "sourceColumn": "month",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "artist_key",
+            "dataType": "string",
+            "sourceColumn": "artist_key",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "track_key",
+            "dataType": "string",
+            "sourceColumn": "track_key",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "ms_played",
+            "dataType": "int64",
+            "sourceColumn": "ms_played",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "minutes_played",
+            "dataType": "double",
+            "sourceColumn": "minutes_played",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "qualified_play",
+            "dataType": "int64",
+            "sourceColumn": "qualified_play",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "is_new_artist",
+            "dataType": "int64",
+            "sourceColumn": "is_new_artist",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "is_new_song",
+            "dataType": "int64",
+            "sourceColumn": "is_new_song",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "is_returning_artist",
+            "dataType": "int64",
+            "sourceColumn": "is_returning_artist",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "skipped",
+            "dataType": "int64",
+            "sourceColumn": "skipped",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "reason_end",
+            "dataType": "string",
+            "sourceColumn": "reason_end",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "platform",
+            "dataType": "string",
+            "sourceColumn": "platform",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "stream_type",
+            "dataType": "string",
+            "sourceColumn": "stream_type",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Listening",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(File.Contents(DataFolder & \"/fact_listening.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    BlanksToNull = Table.ReplaceValue(Headers, \"\", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),",
+                "    Typed = Table.TransformColumnTypes(BlanksToNull, {{\"event_id\", type text}, {\"ended_at_utc\", type text}, {\"date\", type date}, {\"hour\", Int64.Type}, {\"weekday_number\", Int64.Type}, {\"weekday\", type text}, {\"year\", Int64.Type}, {\"month\", type text}, {\"artist_key\", type text}, {\"track_key\", type text}, {\"ms_played\", Int64.Type}, {\"minutes_played\", type number}, {\"qualified_play\", Int64.Type}, {\"is_new_artist\", Int64.Type}, {\"is_new_song\", Int64.Type}, {\"is_returning_artist\", Int64.Type}, {\"skipped\", Int64.Type}, {\"reason_end\", type text}, {\"platform\", type text}, {\"stream_type\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Listening Hours",
+            "expression": "DIVIDE(SUM(Listening[ms_played]), 3600000)",
+            "formatString": "#,0.0",
+            "description": "All valid music duration, including plays shorter than the qualification threshold.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Qualified Plays",
+            "expression": "SUM(Listening[qualified_play])",
+            "formatString": "#,0",
+            "description": "Music events at or above the pipeline's configured duration threshold (default 30 seconds).",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Unique Artists",
+            "expression": "CALCULATE(DISTINCTCOUNT(Listening[artist_key]), Listening[qualified_play] = 1)",
+            "formatString": "#,0",
+            "description": "Artists with a qualified play in the current filter context.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Unique Songs",
+            "expression": "CALCULATE(DISTINCTCOUNT(Listening[track_key]), Listening[qualified_play] = 1)",
+            "formatString": "#,0",
+            "description": "Songs with a qualified play in the current filter context.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "New Songs",
+            "expression": "SUM(Listening[is_new_song])",
+            "formatString": "#,0",
+            "description": "Songs whose first observed qualifying event falls within the selected context.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "New Artists",
+            "expression": "SUM(Listening[is_new_artist])",
+            "formatString": "#,0",
+            "description": "Artists whose first observed qualifying event falls within the selected context.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Discovery Rate",
+            "expression": "DIVIDE([New Songs], [Qualified Plays])",
+            "formatString": "0.0%",
+            "description": "First-observed qualifying song events divided by all qualifying plays. Discovery is relative to available export history.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Artist Loyalty",
+            "expression": "DIVIDE(SUM(Listening[is_returning_artist]), [Qualified Plays])",
+            "formatString": "0.0%",
+            "description": "Fraction of qualifying plays for artists first heard on a strictly earlier local date.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Known Skip Rate",
+            "expression": "DIVIDE(CALCULATE(COUNTROWS(Listening), Listening[skipped] = 1), CALCULATE(COUNTROWS(Listening), NOT ISBLANK(Listening[skipped])))",
+            "formatString": "0.0%",
+            "description": "Explicit true skips divided by music events with a known skip flag; null flags are excluded.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Genre Coverage",
+            "expression": "DIVIDE(CALCULATE([Listening Hours], KEEPFILTERS(Artists[primary_genre] <> \"Unknown\")), [Listening Hours])",
+            "formatString": "0.0%",
+            "description": "Share of listening hours mapped to a verified primary artist genre, in current context.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Average Minutes per Day",
+            "expression": "DIVIDE([Listening Hours] * 60, COUNTROWS(Dates))",
+            "formatString": "#,0.0",
+            "description": "Minutes divided by selected calendar dates, including dates with no music events.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Top 5 Artist Share",
+            "expression": "VAR TopArtists = TOPN(5, ALLSELECTED(Artists), [Listening Hours], DESC, Artists[artist_key], ASC) RETURN DIVIDE(SUMX(TopArtists, [Listening Hours]), CALCULATE([Listening Hours], ALLSELECTED(Artists)))",
+            "formatString": "0.0%",
+            "description": "Listening time to the selected population's five most-listened artists, divided by total selected artist listening time.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Top Artist Hours",
+            "expression": "IF(RANKX(ALLSELECTED(Artists[artist_name]), [Listening Hours], , DESC, DENSE) <= 10, [Listening Hours], BLANK())",
+            "formatString": "#,0.0",
+            "description": "Hours for the ten leading artist ranks under the current filters; ties can show more than ten.",
+            "displayFolder": "Listening metrics"
+          },
+          {
+            "name": "Top Song Plays",
+            "expression": "IF(RANKX(ALLSELECTED(Tracks[track_label]), [Qualified Plays], , DESC, DENSE) <= 10, [Qualified Plays], BLANK())",
+            "formatString": "#,0",
+            "description": "Qualified plays for the ten leading song ranks under the current filters; ties can show more than ten.",
+            "displayFolder": "Listening metrics"
+          }
+        ]
+      },
+      {
+        "name": "Artists",
+        "columns": [
+          {
+            "name": "artist_key",
+            "dataType": "string",
+            "sourceColumn": "artist_key",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "artist_name",
+            "dataType": "string",
+            "sourceColumn": "artist_name",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "first_heard_date",
+            "dataType": "dateTime",
+            "sourceColumn": "first_heard_date",
+            "summarizeBy": "none",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "primary_genre",
+            "dataType": "string",
+            "sourceColumn": "primary_genre",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "source",
+            "dataType": "string",
+            "sourceColumn": "source",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Artists",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(File.Contents(DataFolder & \"/dim_artists.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    BlanksToNull = Table.ReplaceValue(Headers, \"\", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),",
+                "    Typed = Table.TransformColumnTypes(BlanksToNull, {{\"artist_key\", type text}, {\"artist_name\", type text}, {\"first_heard_date\", type date}, {\"primary_genre\", type text}, {\"source\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Tracks",
+        "columns": [
+          {
+            "name": "track_key",
+            "dataType": "string",
+            "sourceColumn": "track_key",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "track_name",
+            "dataType": "string",
+            "sourceColumn": "track_name",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "artist_key",
+            "dataType": "string",
+            "sourceColumn": "artist_key",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "album_name",
+            "dataType": "string",
+            "sourceColumn": "album_name",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "spotify_track_uri",
+            "dataType": "string",
+            "sourceColumn": "spotify_track_uri",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "first_heard_date",
+            "dataType": "dateTime",
+            "sourceColumn": "first_heard_date",
+            "summarizeBy": "none",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "track_label",
+            "dataType": "string",
+            "sourceColumn": "track_label",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Tracks",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(File.Contents(DataFolder & \"/dim_tracks.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    BlanksToNull = Table.ReplaceValue(Headers, \"\", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),",
+                "    Typed = Table.TransformColumnTypes(BlanksToNull, {{\"track_key\", type text}, {\"track_name\", type text}, {\"artist_key\", type text}, {\"album_name\", type text}, {\"spotify_track_uri\", type text}, {\"first_heard_date\", type date}, {\"track_label\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Dates",
+        "columns": [
+          {
+            "name": "date",
+            "dataType": "dateTime",
+            "sourceColumn": "date",
+            "summarizeBy": "none",
+            "formatString": "yyyy-MM-dd",
+            "isKey": true,
+            "annotations": [
+              {
+                "name": "UnderlyingDateTimeDataType",
+                "value": "Date"
+              }
+            ]
+          },
+          {
+            "name": "year",
+            "dataType": "int64",
+            "sourceColumn": "year",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "month",
+            "dataType": "string",
+            "sourceColumn": "month",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "month_number",
+            "dataType": "int64",
+            "sourceColumn": "month_number",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "weekday_number",
+            "dataType": "int64",
+            "sourceColumn": "weekday_number",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "weekday",
+            "dataType": "string",
+            "sourceColumn": "weekday",
+            "summarizeBy": "none",
+            "sortByColumn": "weekday_number"
+          },
+          {
+            "name": "is_weekend",
+            "dataType": "int64",
+            "sourceColumn": "is_weekend",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Dates",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(File.Contents(DataFolder & \"/dim_dates.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    BlanksToNull = Table.ReplaceValue(Headers, \"\", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),",
+                "    Typed = Table.TransformColumnTypes(BlanksToNull, {{\"date\", type date}, {\"year\", Int64.Type}, {\"month\", type text}, {\"month_number\", Int64.Type}, {\"weekday_number\", Int64.Type}, {\"weekday\", type text}, {\"is_weekend\", Int64.Type}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "dataCategory": "Time"
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Listening_Dates",
+        "fromTable": "Listening",
+        "fromColumn": "date",
+        "toTable": "Dates",
+        "toColumn": "date",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "Listening_Artists",
+        "fromTable": "Listening",
+        "fromColumn": "artist_key",
+        "toTable": "Artists",
+        "toColumn": "artist_key",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "Listening_Tracks",
+        "fromTable": "Listening",
+        "fromColumn": "track_key",
+        "toTable": "Tracks",
+        "toColumn": "track_key",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"DataFolder\",\"Dates\",\"Artists\",\"Tracks\",\"Listening\"]"
+      },
+      {
+        "name": "PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+// All valid music duration, including plays shorter than the qualification threshold.
+Listening Hours =
+    DIVIDE(SUM(Listening[ms_played]), 3600000)
+
+// Music events at or above the pipeline's configured duration threshold (default 30 seconds).
+Qualified Plays =
+    SUM(Listening[qualified_play])
+
+// Artists with a qualified play in the current filter context.
+Unique Artists =
+    CALCULATE(DISTINCTCOUNT(Listening[artist_key]), Listening[qualified_play] = 1)
+
+// Songs with a qualified play in the current filter context.
+Unique Songs =
+    CALCULATE(DISTINCTCOUNT(Listening[track_key]), Listening[qualified_play] = 1)
+
+// Songs whose first observed qualifying event falls within the selected context.
+New Songs =
+    SUM(Listening[is_new_song])
+
+// Artists whose first observed qualifying event falls within the selected context.
+New Artists =
+    SUM(Listening[is_new_artist])
+
+// First-observed qualifying song events divided by all qualifying plays. Discovery is relative to available export history.
+Discovery Rate =
+    DIVIDE([New Songs], [Qualified Plays])
+
+// Fraction of qualifying plays for artists first heard on a strictly earlier local date.
+Artist Loyalty =
+    DIVIDE(SUM(Listening[is_returning_artist]), [Qualified Plays])
+
+// Explicit true skips divided by music events with a known skip flag; null flags are excluded.
+Known Skip Rate =
+    DIVIDE(CALCULATE(COUNTROWS(Listening), Listening[skipped] = 1), CALCULATE(COUNTROWS(Listening), NOT ISBLANK(Listening[skipped])))
+
+// Share of listening hours mapped to a verified primary artist genre, in current context.
+Genre Coverage =
+    DIVIDE(CALCULATE([Listening Hours], KEEPFILTERS(Artists[primary_genre] <> "Unknown")), [Listening Hours])
+
+// Minutes divided by selected calendar dates, including dates with no music events.
+Average Minutes per Day =
+    DIVIDE([Listening Hours] * 60, COUNTROWS(Dates))
+
+// Listening time to the selected population's five most-listened artists, divided by total selected artist listening time.
+Top 5 Artist Share =
+    VAR TopArtists = TOPN(5, ALLSELECTED(Artists), [Listening Hours], DESC, Artists[artist_key], ASC) RETURN DIVIDE(SUMX(TopArtists, [Listening Hours]), CALCULATE([Listening Hours], ALLSELECTED(Artists)))
+
+// Hours for the ten leading artist ranks under the current filters; ties can show more than ten.
+Top Artist Hours =
+    IF(RANKX(ALLSELECTED(Artists[artist_name]), [Listening Hours], , DESC, DENSE) <= 10, [Listening Hours], BLANK())
+
+// Qualified plays for the ten leading song ranks under the current filters; ties can show more than ten.
+Top Song Plays =
+    IF(RANKX(ALLSELECTED(Tracks[track_label]), [Qualified Plays], , DESC, DENSE) <= 10, [Qualified Plays], BLANK())
