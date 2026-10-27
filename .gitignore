@@ -1,0 +1,47 @@
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+.cache
+.cache-*
+credentials.json
+token.json
+.aws/
+
+# Python dependencies and generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# JavaScript dependencies and generated files
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.nuxt/
+*.tsbuildinfo
+
+# Logs, local databases, and temporary files
+*.log
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.tmp
+*.swp
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
