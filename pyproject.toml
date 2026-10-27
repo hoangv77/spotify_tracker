@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spotify-tracker"
+version = "0.1.0"
+description = "Reproducible Spotify listening-history analytics and Power BI report"
+requires-python = ">=3.10"
+dependencies = ["pandas>=2.2,<4", "numpy>=1.26,<3", "tzdata>=2024.1", "matplotlib>=3.8,<4"]
+
+[project.optional-dependencies]
+validation = ["jsonschema>=4.23,<5"]
+
+[project.scripts]
+spotify-tracker = "spotify_tracker.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

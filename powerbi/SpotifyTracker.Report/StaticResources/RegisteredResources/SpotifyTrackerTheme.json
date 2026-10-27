@@ -1,0 +1,67 @@
+{
+  "name": "Spotify Tracker",
+  "dataColors": [
+    "#1ED760",
+    "#6CD4C5",
+    "#BBA0F4",
+    "#FFCF70",
+    "#76AAFF",
+    "#F49AAB",
+    "#91B77E",
+    "#C0CCD0"
+  ],
+  "background": "#0D1712",
+  "foreground": "#F5F7FA",
+  "tableAccent": "#1ED760",
+  "good": "#1ED760",
+  "neutral": "#FFCF70",
+  "bad": "#F49AAB",
+  "textClasses": {
+    "label": {
+      "color": "#A9BDB0",
+      "fontFace": "Segoe UI"
+    },
+    "title": {
+      "color": "#F5F7FA",
+      "fontFace": "Segoe UI Semibold"
+    },
+    "callout": {
+      "color": "#1ED760",
+      "fontFace": "Segoe UI Semibold"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#17241F"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "categoryAxis": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#A9BDB0"
+              }
+            }
+          }
+        ],
+        "valueAxis": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#A9BDB0"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

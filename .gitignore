@@ -45,3 +45,19 @@ coverage/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Private Spotify exports and generated analysis
+data/raw/
+data/processed/
+data/metadata/*.csv
+!data/metadata/*.example.csv
+data/metadata/cache/
+output/
+tmp/
+Streaming_History_*.json
+ReadMeFirst_ExtendedStreamingHistory.pdf
+
+# Power BI local cache and packaged data
+**/.pbi/
+*.pbix
+*.pbit
